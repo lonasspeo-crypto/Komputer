@@ -1,0 +1,83 @@
+{% extends "classifier/base.html" %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Penelitian &amp; Metodologi</p>
+  <h1>Tentang sistem ini</h1>
+  <p>
+    Sistem ini dikembangkan sebagai bagian dari skripsi Teknik Informatika,
+    menggunakan metode Agile dan model Convolutional Neural Network (CNN)
+    untuk mengklasifikasikan citra primata endemik Indonesia.
+  </p>
+</section>
+
+<section class="about-section" aria-labelledby="dataset-title">
+  <p class="eyebrow">Dataset</p>
+  <h2 id="dataset-title">Citra penelitian yang terkurasi</h2>
+  <p>
+    Seluruh citra latih bersumber dari iNaturalist, sebuah basis data observasi
+    keanekaragaman hayati berbasis komunitas, dengan filter khusus observasi
+    bergrade &ldquo;research&rdquo; (telah diverifikasi komunitas) untuk menjaga
+    keakuratan label spesies.
+  </p>
+  <p>
+    Pada tahap pengembangan saat ini, sistem mencakup tiga kelas primata
+    (Bekantan, Orangutan Kalimantan, dan Orangutan Sumatra) dengan 300 citra
+    per kelas. Cakupan akan diperluas menjadi tujuh spesies endemik Indonesia
+    pada tahap pengembangan berikutnya.
+  </p>
+</section>
+
+<section class="about-section" aria-labelledby="model-title">
+  <p class="eyebrow">EfficientNet-B0</p>
+  <h2 id="model-title">Klasifikasi berbasis convolutional neural network</h2>
+  <p>
+    Klasifikasi dilakukan menggunakan arsitektur EfficientNet-B0 dengan
+    pendekatan transfer learning dari bobot ImageNet, dilanjutkan dengan
+    fine-tuning pada sebagian lapisan atas jaringan. Model ini mencapai
+    akurasi 78% pada data uji.
+  </p>
+</section>
+
+<section class="about-section about-section--flow" aria-labelledby="flow-title">
+  <p class="eyebrow">Alur Klasifikasi</p>
+  <h2 id="flow-title">Dari foto hingga hasil</h2>
+  <p class="classification-flow">Unggah foto <span aria-hidden="true">→</span> Validasi berkas <span aria-hidden="true">→</span> Preprocessing <span aria-hidden="true">→</span> EfficientNet-B0 <span aria-hidden="true">→</span> Prediksi</p>
+</section>
+
+<section class="about-section" aria-labelledby="limitation-title">
+  <p class="eyebrow">Keterbatasan Sistem</p>
+  <h2 id="limitation-title">Gunakan hasil dengan konteks yang tepat</h2>
+  <p>
+    Sistem ini dibangun untuk tujuan penelitian dan edukasi, bukan sebagai
+    alat identifikasi taksonomi definitif. Hasil klasifikasi selalu
+    dipaksakan ke salah satu dari kelas yang dikenali sistem, sehingga foto
+    di luar cakupan (termasuk hewan lain) tetap akan diklasifikasikan ke
+    salah satu dari ketiga kelas tersebut.
+  </p>
+</section>
+
+<section class="about-section" aria-labelledby="sumber-title">
+  <p class="eyebrow">Sumber Data Spesies</p>
+  <h2 id="sumber-title">Informasi spesies bersumber, bukan ditulis bebas</h2>
+  <p>
+    Seluruh informasi biologis yang ditampilkan pada halaman hasil
+    (status konservasi, ciri fisik, distribusi geografis, dan habitat)
+    disimpan di database dengan metadata rujukan wajib untuk setiap
+    klaim: judul sumber, penulis/tahun, DOI (jika tersedia), tautan
+    langsung, jenis sumber, dan tanggal data diverifikasi. Setiap klaim
+    dapat ditelusuri ulang lewat tautan "Lihat sumber" pada halaman hasil.
+  </p>
+  <p>Prioritas sumber yang digunakan:</p>
+  <ul>
+    <li><strong>Status konservasi</strong> — selalu dari <em>IUCN Red List of Threatened Species</em>, otoritas resmi kategori risiko kepunahan global.</li>
+    <li><strong>Taksonomi &amp; distribusi geografis</strong> — <em>Mammal Diversity Database</em> (American Society of Mammalogists) dan/atau asesmen IUCN Red List.</li>
+    <li><strong>Ciri fisik / identifikasi</strong> — paper ilmiah dan monograf/taxonomic revision (dicantumkan lengkap dengan DOI bila tersedia), bukan deskripsi yang dibuat sendiri.</li>
+  </ul>
+  <p>
+    Kategori status konservasi IUCN dapat berubah ketika ada asesmen baru;
+    rujuk selalu ke tautan sumber pada halaman hasil untuk memastikan
+    status yang paling terkini.
+  </p>
+</section>
+{% endblock %}
