@@ -8,4 +8,5 @@ urlpatterns = [
     path('hasil/<int:pk>/', views.hasil, name='hasil'),
     path('tentang/', views.about, name='about'),
     path('riwayat/', views.riwayat, name='riwayat'),
+    path('spesies/<slug:kode>/', views.spesies_detail, name='spesies_detail'),
 ]

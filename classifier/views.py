@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Prefetch
 from PIL import Image, UnidentifiedImageError
 
 from . import ml_utils
-from .models import RiwayatKlasifikasi, Spesies
+from .models import FotoObservasi, RiwayatKlasifikasi, Spesies
 
 # Di bawah ambang ini, hasil dianggap tidak cukup yakin untuk ditampilkan
 # sebagai identifikasi pasti (kemungkinan bukan salah satu dari 3 kelas target).
@@ -29,6 +30,32 @@ def get_display_names_map():
     }
 
 
+def get_available_observation_photos(spesies, limit=None):
+    """Return observation photos whose files are available to serve."""
+    photos = []
+    for foto in spesies.foto_observasi.all():
+        if foto.gambar and foto.gambar.storage.exists(foto.gambar.name):
+            photos.append(foto)
+            if limit is not None and len(photos) >= limit:
+                break
+    return photos
+
+
+def get_species_cards():
+    """Build homepage species cards from the species and observation tables."""
+    photo_queryset = FotoObservasi.objects.order_by('urutan', 'id')
+    spesies_list = Spesies.objects.prefetch_related(
+        Prefetch('foto_observasi', queryset=photo_queryset)
+    )
+    return [
+        {
+            'spesies': spesies,
+            'foto': next(iter(get_available_observation_photos(spesies, limit=1)), None),
+        }
+        for spesies in spesies_list
+    ]
+
+
 def get_species_info(kode):
     """
     Ambil semua FaktaSpesies milik satu spesies (berdasar kode label model),
@@ -42,12 +69,13 @@ def get_species_info(kode):
         return None
 
     info = {
+        'kode': spesies.kode,
         'nama_umum': spesies.nama_umum,
         'nama_ilmiah': spesies.nama_ilmiah,
         'otoritas_taksonomi': spesies.otoritas_taksonomi,
         'famili': spesies.famili,
         'fakta': {},
-        'foto_observasi': list(spesies.foto_observasi.all()[:4]),
+        'foto_observasi': get_available_observation_photos(spesies, limit=4),
     }
     for f in spesies.fakta.all():
         info['fakta'][f.kategori] = {
@@ -93,7 +121,10 @@ def validate_uploaded_image(image_file):
 
 
 def index(request):
-    context = {'page_title': 'Klasifikasi Primata Endemik Indonesia'}
+    context = {
+        'page_title': 'Klasifikasi Primata Endemik Indonesia',
+        'species_cards': get_species_cards(),
+    }
 
     if request.method == 'POST':
         image_file = request.FILES.get('image')
@@ -172,6 +203,22 @@ def about(request):
         'page_title': 'Tentang Sistem — Klasifikasi Primata Endemik Indonesia',
     }
     return render(request, 'classifier/about.html', context)
+
+
+def spesies_detail(request, kode):
+    spesies = get_object_or_404(
+        Spesies.objects.prefetch_related('fakta', 'foto_observasi'),
+        kode=kode,
+    )
+    foto_observasi = get_available_observation_photos(spesies, limit=8)
+    context = {
+        'page_title': f'{spesies.nama_umum} — Profil Spesies',
+        'spesies': spesies,
+        'fakta': list(spesies.fakta.all()),
+        'foto_observasi': foto_observasi,
+        'foto_utama': foto_observasi[0] if foto_observasi else None,
+    }
+    return render(request, 'classifier/spesies_detail.html', context)
 
 
 def riwayat(request):
