@@ -32,6 +32,8 @@ class RiwayatViewTests(TestCase):
 
         self.assertContains(response, 'Bekantan kuat')
         self.assertNotContains(response, 'Bekantan lemah')
+        self.assertContains(response, 'role="meter"')
+        self.assertContains(response, 'loading="lazy"')
 
     def test_history_filters_by_species(self):
         self.create_history(
@@ -191,3 +193,43 @@ class SpesiesInfoTests(TestCase):
         response = self.client.get(reverse('classifier:hasil', args=[history.pk]))
 
         self.assertContains(response, 'belum tersedia di database')
+
+    def test_homepage_renders_species_cards_from_database(self):
+        response = self.client.get(reverse('classifier:index'))
+
+        self.assertEqual(len(response.context['species_cards']), Spesies.objects.count())
+        self.assertContains(response, 'classifier/images/bekantan-hero.jpg')
+        self.assertContains(response, 'Denis Luyten / Wikimedia Commons')
+        self.assertContains(
+            response,
+            reverse('classifier:spesies_detail', args=['bekantan']),
+        )
+        self.assertContains(response, 'Lihat profil')
+
+    def test_species_profile_shows_sourced_facts(self):
+        response = self.client.get(
+            reverse('classifier:spesies_detail', args=['bekantan'])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Profil spesies')
+        self.assertContains(response, 'Nasalis larvatus')
+        self.assertContains(response, 'Informasi dan sumber')
+        self.assertContains(response, '10.2305/IUCN.UK.2020-2.RLTS.T14352A17945165.en')
+
+    def test_species_profile_returns_not_found_for_unknown_species(self):
+        response = self.client.get(
+            reverse('classifier:spesies_detail', args=['spesies-tidak-ada'])
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_confident_result_links_to_species_profile(self):
+        history = self.create_history(label='bekantan', name='Bekantan')
+
+        response = self.client.get(reverse('classifier:hasil', args=[history.pk]))
+
+        self.assertContains(
+            response,
+            reverse('classifier:spesies_detail', args=['bekantan']),
+        )

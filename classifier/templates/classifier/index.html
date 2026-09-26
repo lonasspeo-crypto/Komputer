@@ -18,8 +18,8 @@
     </dl>
   </div>
   <figure class="home-hero__media">
-    <img src="{% static 'classifier/images/orangutan-hero.jpg' %}" alt="Orangutan di habitat alami" width="720" height="900" fetchpriority="high">
-    <figcaption>Primata endemik Indonesia</figcaption>
+    <img src="{% static 'classifier/images/bekantan-hero.jpg' %}" alt="Bekantan di habitat alaminya di Borneo" width="1280" height="851" fetchpriority="high" decoding="async">
+    <figcaption>Bekantan · Denis Luyten / Wikimedia Commons · Public domain · <a href="https://commons.wikimedia.org/wiki/File:2014_Borneo_Luyten-De-Hauwere-Proboscis_monkey-01.jpg" target="_blank" rel="noopener noreferrer">Sumber ↗</a></figcaption>
   </figure>
 </section>
 
@@ -115,7 +115,7 @@
   </ul>
 </section>
 
-<section class="species-list" aria-labelledby="species-title">
+<section class="species-list" id="spesies" aria-labelledby="species-title">
   <div class="section-heading section-heading--compact">
     <div>
       <p class="eyebrow">Cakupan Saat Ini</p>
@@ -124,22 +124,26 @@
     <p>Sistem penelitian ini saat ini mengenali tiga kelas spesies.</p>
   </div>
   <div class="species-cards">
-    <details class="species-card">
-      <summary><span>Bekantan</span><span class="sci-name">Nasalis larvatus</span></summary>
-      <p>Primata khas Kalimantan yang hidup di hutan bakau dan kawasan sungai.</p>
-    </details>
-    <details class="species-card">
-      <summary><span>Orangutan Kalimantan</span><span class="sci-name">Pongo pygmaeus</span></summary>
-      <p>Orangutan yang hidup di hutan hujan Kalimantan.</p>
-    </details>
-    <details class="species-card">
-      <summary><span>Orangutan Sumatra</span><span class="sci-name">Pongo abelii</span></summary>
-      <p>Orangutan yang terutama ditemukan di utara Sumatra.</p>
-    </details>
+    {% for card in species_cards %}
+    <a class="species-card" href="{% url 'classifier:spesies_detail' card.spesies.kode %}">
+      {% if card.foto %}
+      <img class="species-card__image" src="{{ card.foto.gambar.url }}" alt="Foto observasi {{ card.spesies.nama_umum }}" width="640" height="420" loading="lazy" decoding="async">
+      {% else %}
+      <span class="species-card__placeholder" aria-hidden="true">{{ card.spesies.nama_umum|first }}</span>
+      {% endif %}
+      <span class="species-card__content">
+        <span class="species-card__name">{{ card.spesies.nama_umum }}</span>
+        <span class="sci-name">{{ card.spesies.nama_ilmiah }}</span>
+        <span class="species-card__link">Lihat profil <span aria-hidden="true">→</span></span>
+      </span>
+    </a>
+    {% empty %}
+    <p class="species-empty">Data spesies belum tersedia.</p>
+    {% endfor %}
   </div>
 </section>
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'classifier/upload.js' %}?v=20260916b" defer></script>
+<script src="{% static 'classifier/upload.js' %}?v=20260926a" defer></script>
 {% endblock %}

@@ -11,15 +11,23 @@
 <section class="result-card result-card--redesigned{% if not prediction.is_confident %} result-uncertain{% endif %}">
   <div class="result-heading">
     <p class="label">Hasil Klasifikasi</p>
+    {% if prediction.is_confident %}
+    <span class="result-status status-confirmed">Keyakinan memenuhi ambang</span>
+    {% else %}
+    <span class="result-status status-review">Perlu verifikasi</span>
+    {% endif %}
   </div>
   <div class="result-body">
-    <img src="{{ uploaded_image_url }}" alt="Foto yang diunggah" class="result-image">
+    <img src="{{ uploaded_image_url }}" alt="Foto yang diunggah" class="result-image" width="640" height="480" fetchpriority="high" decoding="async">
     <div class="result-info">
       <div class="prediction-summary">
         <div>
           <p class="result-species">{% if prediction.is_confident %}{{ prediction.display_name }}{% else %}{{ prediction.display_name }}{% endif %}</p>
           {% if prediction.is_confident %}
           <p class="result-sci">{{ prediction.sci_name }}</p>
+          {% if prediction.info %}
+          <a class="species-profile-link" href="{% url 'classifier:spesies_detail' prediction.info.kode %}">Baca profil spesies <span aria-hidden="true">→</span></a>
+          {% endif %}
           {% else %}
           <p class="result-uncertain-note">Prediksi tertinggi, tetapi belum melewati ambang validasi sistem.</p>
           {% endif %}
@@ -136,7 +144,7 @@
 
             {% for foto in prediction.info.foto_observasi %}
             <figure class="observation-slide{% if forloop.first %} is-active{% endif %}" data-carousel-slide>
-              <img src="{{ foto.gambar.url }}" alt="Foto observasi {{ prediction.display_name }} di {{ foto.lokasi|default:'lokasi tidak diketahui' }}">
+              <img src="{{ foto.gambar.url }}" alt="Foto observasi {{ prediction.display_name }} di {{ foto.lokasi|default:'lokasi tidak diketahui' }}" width="1200" height="800" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}" decoding="async">
             </figure>
             {% endfor %}
 

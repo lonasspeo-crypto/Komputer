@@ -1,0 +1,73 @@
+{% extends "classifier/base.html" %}
+
+{% block content %}
+<p class="back-link"><a href="{% url 'classifier:index' %}#spesies">&larr; Kembali ke daftar spesies</a></p>
+
+<section class="species-profile" aria-labelledby="species-profile-title">
+  <div class="species-profile__hero">
+    {% if foto_utama %}
+    <img src="{{ foto_utama.gambar.url }}" alt="Foto observasi {{ spesies.nama_umum }}{% if foto_utama.lokasi %} di {{ foto_utama.lokasi }}{% endif %}" width="1200" height="900" fetchpriority="high" decoding="async">
+    {% else %}
+    <div class="species-profile__placeholder" aria-hidden="true">{{ spesies.nama_umum|first }}</div>
+    {% endif %}
+    <div class="species-profile__intro">
+      <p class="eyebrow">Profil spesies</p>
+      <h1 id="species-profile-title">{{ spesies.nama_umum }}</h1>
+      <p class="species-profile__scientific">{{ spesies.nama_ilmiah }}{% if spesies.otoritas_taksonomi %} {{ spesies.otoritas_taksonomi }}{% endif %}</p>
+      {% if spesies.famili %}<p class="species-profile__family">Famili {{ spesies.famili }}</p>{% endif %}
+      <a class="btn-primary" href="{% url 'classifier:index' %}#klasifikasi">Identifikasi foto</a>
+    </div>
+  </div>
+
+  {% if foto_observasi %}
+  <section class="profile-section" aria-labelledby="profile-photos-title">
+    <div class="section-heading section-heading--compact">
+      <div>
+        <p class="eyebrow">Galeri observasi</p>
+        <h2 id="profile-photos-title">Foto pembanding</h2>
+      </div>
+      <p>Foto dan informasi observasi yang tersimpan untuk spesies ini.</p>
+    </div>
+    <div class="profile-photo-grid">
+      {% for foto in foto_observasi %}
+      <figure class="profile-photo">
+        <img src="{{ foto.gambar.url }}" alt="Observasi {{ spesies.nama_umum }}{% if foto.lokasi %} di {{ foto.lokasi }}{% endif %}" width="640" height="480" loading="lazy" decoding="async">
+        <figcaption>
+          {% if foto.lokasi %}<strong>{{ foto.lokasi }}</strong>{% else %}<strong>Lokasi tidak dicatat</strong>{% endif %}
+          {% if foto.tanggal_diambil %}<span>{{ foto.tanggal_diambil|date:"d M Y" }}</span>{% endif %}
+          {% if foto.fotografer %}<span>Foto: {{ foto.fotografer }}</span>{% endif %}
+          {% if foto.sumber_url %}<a href="{{ foto.sumber_url }}" target="_blank" rel="noopener noreferrer">Sumber asli{% if foto.sumber_platform %} · {{ foto.sumber_platform }}{% endif %} ↗</a>{% endif %}
+          {% if foto.lisensi %}<span class="species-fact__meta">{{ foto.lisensi }}</span>{% endif %}
+        </figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if fakta %}
+  <section class="profile-section" aria-labelledby="profile-facts-title">
+    <div class="section-heading section-heading--compact">
+      <div>
+        <p class="eyebrow">Referensi ilmiah</p>
+        <h2 id="profile-facts-title">Informasi dan sumber</h2>
+      </div>
+      <p>Setiap keterangan spesies disertai rujukan agar dapat ditelusuri.</p>
+    </div>
+    <div class="profile-facts">
+      {% for item in fakta %}
+      <article class="profile-fact">
+        <h3>{{ item.get_kategori_display }}</h3>
+        <p>{{ item.isi }}</p>
+        <p class="species-fact__source">
+          {{ item.source_title }}{% if item.source_author %} — {{ item.source_author }}{% endif %}{% if item.source_year %} ({{ item.source_year }}){% endif %}.
+          {% if item.source_doi %}<a href="https://doi.org/{{ item.source_doi }}" target="_blank" rel="noopener noreferrer">DOI: {{ item.source_doi }} ↗</a>{% else %}<a href="{{ item.source_url }}" target="_blank" rel="noopener noreferrer">Lihat sumber ↗</a>{% endif %}
+          <span class="species-fact__meta">{{ item.get_source_type_display }} · diakses {{ item.source_date|date:"d M Y" }}</span>
+        </p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</section>
+{% endblock %}
