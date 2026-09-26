@@ -1,0 +1,78 @@
+{% extends "classifier/base.html" %}
+{% load static cache_bust %}
+
+{% block content %}
+<section class="species-profile-hero">
+  <p class="back-link"><a href="{% url 'classifier:index' %}#klasifikasi">&larr; Kembali ke Beranda</a></p>
+  <div class="species-profile__grid">
+    <figure class="species-profile__media">
+      <img src="{% versioned_static spesies.hero_static %}" alt="Foto {{ spesies.nama_umum }} ({{ spesies.nama_ilmiah }})" width="560" height="560" loading="lazy" decoding="async">
+      {% if foto_utama.fotografer %}<figcaption>{{ foto_utama.fotografer }}{% if foto_utama.sumber_url %} &middot; <a href="{{ foto_utama.sumber_url }}" target="_blank" rel="noopener noreferrer">sumber &#8599;</a>{% endif %}</figcaption>{% endif %}
+    </figure>
+    <div class="species-profile__intro">
+      <p class="eyebrow">Profil Spesies</p>
+      <h1>{{ spesies.nama_umum }}</h1>
+      <p class="sci-name species-profile__sci">{{ spesies.nama_ilmiah }}{% if spesies.otoritas_taksonomi %} <span class="species-profile__authority">{{ spesies.otoritas_taksonomi }}</span>{% endif %}</p>
+      {% if spesies.famili %}<p class="species-profile__family">Famili: {{ spesies.famili }}</p>{% endif %}
+      {% if status_konservasi %}
+      <p class="conservation-badge conservation-badge--{{ status_konservasi.kode_badge|default:'unknown' }}">
+        Status konservasi IUCN: <strong>{{ status_konservasi.isi }}</strong>
+      </p>
+      {% endif %}
+      <a class="btn-primary" href="{% url 'classifier:index' %}#klasifikasi">Uji Identifikasi Spesies Ini</a>
+    </div>
+  </div>
+</section>
+
+{% if fakta_list %}
+<section class="species-profile-facts" aria-labelledby="fakta-title">
+  <div class="section-heading section-heading--compact">
+    <div>
+      <p class="eyebrow">Bersumber &amp; Dapat Diverifikasi</p>
+      <h2 id="fakta-title">Fakta ilmiah</h2>
+    </div>
+    <p>Setiap klaim di bawah ini disertai sumber resmi/ilmiah dan dapat dicek ulang melalui tautan.</p>
+  </div>
+  <div class="facts-grid">
+    {% for item in fakta_list %}
+    {% include "classifier/partials/fakta_sumber.html" with fakta=item.fakta label=item.label %}
+    {% endfor %}
+  </div>
+  <p class="species-note__disclaimer">
+    Seluruh informasi di atas dikutip dari sumber resmi/ilmiah yang tercantum
+    (bukan ditulis bebas oleh sistem). Klasifikasi status konservasi IUCN dapat
+    berubah seiring asesmen baru; rujuk langsung ke IUCN Red List untuk status terkini.
+  </p>
+</section>
+{% endif %}
+
+{% if foto_observasi %}
+<section class="observation-gallery" aria-labelledby="observasi-title">
+  <div class="section-heading section-heading--compact">
+    <div>
+      <p class="eyebrow">Galeri Lapangan</p>
+      <h2 id="observasi-title">Contoh foto observasi {{ spesies.nama_umum }}</h2>
+    </div>
+    <p>Foto dari observasi lapangan yang telah diverifikasi, beserta detail pengambilannya.</p>
+  </div>
+  <ul class="observation-grid">
+    {% for foto in foto_observasi %}
+    <li class="observation-card">
+      <img src="{{ foto.gambar.url }}" alt="Foto observasi {{ spesies.nama_umum }}{% if foto.lokasi %} di {{ foto.lokasi }}{% endif %}" loading="lazy" decoding="async">
+      <div class="observation-card__meta">
+        {% if foto.lokasi %}<p><strong>Lokasi:</strong> {{ foto.lokasi }}</p>{% endif %}
+        {% if foto.tanggal_diambil %}<p><strong>Tanggal:</strong> {{ foto.tanggal_diambil|date:"d M Y" }}</p>{% endif %}
+        {% if foto.fotografer %}<p><strong>Fotografer:</strong> {{ foto.fotografer }}</p>{% endif %}
+        {% if foto.sumber_url %}
+        <p class="observation-source">
+          <a href="{{ foto.sumber_url }}" target="_blank" rel="noopener noreferrer">Lihat sumber asli{% if foto.sumber_platform %} ({{ foto.sumber_platform }}){% endif %} &#8599;</a>
+          {% if foto.lisensi %}<span class="species-fact__meta">[{{ foto.lisensi }}]</span>{% endif %}
+        </p>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

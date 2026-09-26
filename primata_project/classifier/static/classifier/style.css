@@ -1721,3 +1721,76 @@ body { overflow-x: hidden; }
   .classification-flow { display: block; line-height: 2; }
   .classification-flow span { margin: 0 0.2rem; }
 }
+
+/* ===== Visual Enhancement Phase: species cards, hero media, profile page, history polish ===== */
+
+/* --- Hero media: halus & konsisten --- */
+.home-hero__media picture { display: block; height: 100%; }
+.home-hero__media img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); }
+.home-hero__media figcaption { margin-top: 0.6rem; font-size: 0.78rem; color: var(--color-bark); text-align: right; font-style: italic; }
+
+/* --- Kartu spesies dengan thumbnail foto nyata --- */
+.species-card { overflow: hidden; border-radius: var(--radius-md); transition: box-shadow 200ms ease, transform 200ms ease; }
+.species-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.species-card summary { align-items: center; gap: 0.9rem; padding: 0.9rem 1rem; }
+.species-card__media { flex-shrink: 0; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2px solid var(--color-mist); background: var(--color-beige); }
+.species-card__media img { width: 100%; height: 100%; object-fit: cover; }
+.species-card__names { display: grid; gap: 0.15rem; margin-right: auto; min-width: 0; }
+.species-card__names > span:first-child { font-family: var(--font-display); font-weight: 700; color: var(--color-canopy); }
+.species-card .sci-name { font-size: 0.82rem; }
+.species-card p { padding: 0.85rem 1rem 0.4rem; }
+.species-card__link { display: inline-block; margin: 0 1rem 1rem; color: var(--color-ochre); font-size: 0.85rem; font-weight: 700; text-decoration: none; }
+.species-card__link:hover { text-decoration: underline; }
+
+/* --- Tautan profil di halaman hasil --- */
+.result-profile-link { margin: 0.5rem 0 0; font-size: 0.9rem; }
+.result-profile-link a { color: var(--color-ochre); font-weight: 700; text-decoration: none; }
+.result-profile-link a:hover { text-decoration: underline; }
+
+/* --- Galeri riwayat: zoom thumbnail + bar keyakinan --- */
+.riwayat-thumb { display: block; overflow: hidden; aspect-ratio: 2 / 1; background: var(--color-beige); }
+.riwayat-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 350ms ease; }
+.riwayat-item:hover .riwayat-thumb img { transform: scale(1.045); }
+.riwayat-confidence { display: block; height: 5px; margin-top: 0.55rem; overflow: hidden; border-radius: 99px; background: #d9e2d8; }
+.riwayat-confidence span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-canopy), #2c6a4b); }
+
+/* --- Halaman profil spesies --- */
+.species-profile-hero { margin-bottom: 2.5rem; }
+.species-profile__grid { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: center; margin-top: 1.5rem; }
+.species-profile__media { margin: 0; }
+.species-profile__media img { width: 100%; max-width: 480px; aspect-ratio: 1 / 1; object-fit: cover; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); }
+.species-profile__media figcaption { margin-top: 0.6rem; font-size: 0.78rem; color: var(--color-bark); font-style: italic; }
+.species-profile__media figcaption a { color: var(--color-ochre); }
+.species-profile__sci { font-size: 1.2rem; margin: 0.2rem 0 0.4rem; }
+.species-profile__authority { font-style: normal; font-size: 0.85em; color: var(--color-bark); }
+.species-profile__family { color: var(--color-bark); font-size: 0.92rem; margin: 0 0 1rem; }
+.conservation-badge { display: inline-block; margin: 0 0 1.4rem; padding: 0.45rem 0.9rem; border-radius: 99px; background: #fdecea; border: 1px solid #f2c4bd; color: var(--color-danger); font-size: 0.85rem; font-weight: 600; }
+.conservation-badge strong { font-weight: 800; }
+
+.species-profile-facts { margin-bottom: 2.5rem; }
+.facts-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.facts-grid .species-fact { padding: 1.1rem 1.25rem; border: 1px solid var(--color-mist); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-sm); }
+.facts-grid .species-fact p:first-child { margin-top: 0; }
+
+.observation-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; list-style: none; margin: 1.5rem 0 0; padding: 0; }
+.observation-card { overflow: hidden; border: 1px solid var(--color-mist); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-sm); transition: box-shadow 200ms ease, transform 200ms ease; }
+.observation-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.observation-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.observation-card__meta { padding: 0.85rem 1rem 1rem; font-size: 0.82rem; color: var(--color-bark); }
+.observation-card__meta p { margin: 0.15rem 0; }
+.observation-source a { color: var(--color-ochre); font-weight: 600; }
+
+@media (max-width: 850px) {
+  .species-profile__grid { grid-template-columns: 1fr; }
+  .species-profile__media img { max-width: 100%; }
+}
+
+@media (max-width: 640px) {
+  .facts-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .species-card, .observation-card, .riwayat-thumb img { transition: none; }
+  .species-card:hover, .observation-card:hover { transform: none; }
+  .riwayat-item:hover .riwayat-thumb img { transform: none; }
+}

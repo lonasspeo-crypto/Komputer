@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.templatetags.static import static
+from django.urls import reverse
 from PIL import Image, UnidentifiedImageError
 
 from . import ml_utils
-from .models import RiwayatKlasifikasi, Spesies
+from .models import FaktaSpesies, RiwayatKlasifikasi, Spesies
 
 # Di bawah ambang ini, hasil dianggap tidak cukup yakin untuk ditampilkan
 # sebagai identifikasi pasti (kemungkinan bukan salah satu dari 3 kelas target).
@@ -63,6 +65,47 @@ def get_species_info(kode):
     return info
 
 
+# Ringkasan singkat (netral, tanpa klaim ilmiah spesifik) untuk kartu spesies
+# di beranda. Klaim ilmiah yang bisa diperdebatkan tetap WAJIB lewat
+# FaktaSpesies + sumbernya, bukan dari teks statis ini.
+SPESIES_DESKRIPSI_SINGKAT = {
+    'bekantan': 'Primata khas Kalimantan yang hidup di hutan bakau dan kawasan sungai.',
+    'orangutan_kalimantan': 'Orangutan yang hidup di hutan hujan Kalimantan.',
+    'orangutan_sumatra': 'Orangutan yang terutama ditemukan di utara Sumatra.',
+}
+
+
+def _static_there(path):
+    """Cek apakah file static dengan path relatif tertentu benar-benar ada."""
+    import os
+    from django.conf import settings
+    for root in settings.STATICFILES_DIRS:
+        if os.path.exists(os.path.join(str(root), path)):
+            return True
+    return False
+
+
+def get_species_cards():
+    """
+    Bangun daftar dict spesies untuk kartu di beranda: identitas dari database,
+    plus thumbnail/hero opsional bila file gambarnya tersedia di folder static.
+    """
+    cards = []
+    for s in Spesies.objects.all():
+        thumb_rel = f'classifier/images/species/{s.kode}-thumb.jpg'
+        hero_rel = f'classifier/images/species/{s.kode}-hero.jpg'
+        cards.append({
+            'kode': s.kode,
+            'nama_umum': s.nama_umum,
+            'nama_ilmiah': s.nama_ilmiah,
+            'deskripsi': SPESIES_DESKRIPSI_SINGKAT.get(s.kode, ''),
+            'thumb_static': static(thumb_rel) if _static_there(thumb_rel) else None,
+            'hero_static': static(hero_rel) if _static_there(hero_rel) else None,
+            'detail_url': reverse('classifier:spesies_detail', kwargs={'kode': s.kode}),
+        })
+    return cards
+
+
 def validate_uploaded_image(image_file):
     """Validate file metadata and image readability before prediction."""
     if image_file.content_type not in ALLOWED_IMAGE_TYPES:
@@ -93,7 +136,10 @@ def validate_uploaded_image(image_file):
 
 
 def index(request):
-    context = {'page_title': 'Klasifikasi Primata Endemik Indonesia'}
+    context = {
+        'page_title': 'Klasifikasi Primata Endemik Indonesia',
+        'daftar_spesies': get_species_cards(),
+    }
 
     if request.method == 'POST':
         image_file = request.FILES.get('image')
@@ -142,6 +188,15 @@ def index(request):
                 'gambar JPG/PNG yang valid.'
             )
 
+    # Sentuhan personal di hero beranda: tampilkan spesies dari prediksi
+    # terakhir user bila ada dan file gambarnya tersedia.
+    terakhir = RiwayatKlasifikasi.objects.order_by('-waktu').first()
+    if terakhir:
+        for card in context['daftar_spesies']:
+            if card['kode'] == terakhir.label_prediksi and card['hero_static']:
+                context['prediksi_spesies'] = card
+                break
+
     return render(request, 'classifier/index.html', context)
 
 
@@ -163,8 +218,51 @@ def hasil(request, pk):
         },
         'all_results': riwayat.semua_hasil,
         'threshold_pct': round(CONFIDENCE_THRESHOLD * 100),
+        'species_detail_url': reverse(
+            'classifier:spesies_detail', kwargs={'kode': riwayat.label_prediksi}
+        ),
     }
     return render(request, 'classifier/hasil.html', context)
+
+
+def spesies_detail(request, kode):
+    """Halaman profil lengkap satu spesies: identitas, fakta bersumber, galeri."""
+    spesies = get_object_or_404(
+        Spesies.objects.prefetch_related('fakta', 'foto_observasi'), kode=kode
+    )
+    hero_rel = f'classifier/images/species/{spesies.kode}-hero.jpg'
+    thumb_rel = f'classifier/images/species/{spesies.kode}-thumb.jpg'
+    hero_static = static(hero_rel) if _static_there(hero_rel) else None
+    if hero_static is None and _static_there(thumb_rel):
+        hero_static = static(thumb_rel)
+
+    kategori_label = dict(FaktaSpesies.KATEGORI_CHOICES)
+    fakta_list = [
+        {'kategori': f.kategori, 'label': kategori_label.get(f.kategori, f.kategori), 'fakta': f}
+        for f in spesies.fakta.all().order_by('kategori')
+    ]
+    status_konservasi = next(
+        (item['fakta'] for item in fakta_list if item['kategori'] == 'status_konservasi'),
+        None,
+    )
+    foto_observasi = list(spesies.foto_observasi.all())
+
+    context = {
+        'page_title': f'{spesies.nama_umum} ({spesies.nama_ilmiah}) — Profil Spesies',
+        'spesies': {
+            'kode': spesies.kode,
+            'nama_umum': spesies.nama_umum,
+            'nama_ilmiah': spesies.nama_ilmiah,
+            'otoritas_taksonomi': spesies.otoritas_taksonomi,
+            'famili': spesies.famili,
+            'hero_static': hero_static,
+        },
+        'fakta_list': fakta_list,
+        'status_konservasi': status_konservasi,
+        'foto_observasi': foto_observasi,
+        'foto_utama': foto_observasi[0] if foto_observasi else None,
+    }
+    return render(request, 'classifier/spesies_detail.html', context)
 
 
 def about(request):

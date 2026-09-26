@@ -1,5 +1,5 @@
 {% extends "classifier/base.html" %}
-{% load static %}
+{% load static cache_bust %}
 
 {% block content %}
 <section class="home-hero" aria-labelledby="home-title">
@@ -18,8 +18,13 @@
     </dl>
   </div>
   <figure class="home-hero__media">
-    <img src="{% static 'classifier/images/orangutan-hero.jpg' %}" alt="Orangutan di habitat alami" width="720" height="900" fetchpriority="high">
-    <figcaption>Primata endemik Indonesia</figcaption>
+    <picture>
+      {% if prediksi_spesies %}
+      <source srcset="{% versioned_static prediksi_spesies.hero_static %}" media="(min-width: 851px)">
+      {% endif %}
+      <img src="{% static 'classifier/images/orangutan-hero.jpg' %}" alt="Orangutan di habitat alami" width="720" height="900" fetchpriority="high">
+    </picture>
+    {% if prediksi_spesies %}<figcaption>{{ prediksi_spesies.nama_umum }} &middot; {{ prediksi_spesies.nama_ilmiah }}</figcaption>{% else %}<figcaption>Primata endemik Indonesia</figcaption>{% endif %}
   </figure>
 </section>
 
@@ -124,18 +129,16 @@
     <p>Sistem penelitian ini saat ini mengenali tiga kelas spesies.</p>
   </div>
   <div class="species-cards">
+    {% for sp in daftar_spesies %}
     <details class="species-card">
-      <summary><span>Bekantan</span><span class="sci-name">Nasalis larvatus</span></summary>
-      <p>Primata khas Kalimantan yang hidup di hutan bakau dan kawasan sungai.</p>
+      <summary>
+        <span class="species-card__media"><img src="{% versioned_static sp.thumb_static %}" alt="Foto {{ sp.nama_umum }}" width="56" height="56" loading="lazy" decoding="async"></span>
+        <span class="species-card__names"><span>{{ sp.nama_umum }}</span><span class="sci-name">{{ sp.nama_ilmiah }}</span></span>
+      </summary>
+      <p>{{ sp.deskripsi }}</p>
+      <a class="species-card__link" href="{{ sp.detail_url }}">Profil lengkap &rarr;</a>
     </details>
-    <details class="species-card">
-      <summary><span>Orangutan Kalimantan</span><span class="sci-name">Pongo pygmaeus</span></summary>
-      <p>Orangutan yang hidup di hutan hujan Kalimantan.</p>
-    </details>
-    <details class="species-card">
-      <summary><span>Orangutan Sumatra</span><span class="sci-name">Pongo abelii</span></summary>
-      <p>Orangutan yang terutama ditemukan di utara Sumatra.</p>
-    </details>
+    {% endfor %}
   </div>
 </section>
 {% endblock %}

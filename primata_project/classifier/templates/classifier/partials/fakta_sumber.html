@@ -1,0 +1,13 @@
+{% comment %}
+Partial reusable untuk menampilkan satu FaktaSpesies beserta metadata sumbernya.
+Pemakaian:
+  {% include "classifier/partials/fakta_sumber.html" with fakta=fakta.status_konservasi label="Status konservasi" %}
+{% endcomment %}
+<div class="species-fact">
+  <p><strong>{{ label }}:</strong> {{ fakta.isi }}</p>
+  <p class="species-fact__source">
+    Sumber: {{ fakta.source_title }}{% if fakta.source_author %} — {{ fakta.source_author }}{% endif %}{% if fakta.source_year %} ({{ fakta.source_year }}){% endif %}.
+    {% if fakta.source_doi %}<a href="https://doi.org/{{ fakta.source_doi }}" target="_blank" rel="noopener noreferrer">DOI: {{ fakta.source_doi }} &#8599;</a>{% else %}<a href="{{ fakta.source_url }}" target="_blank" rel="noopener noreferrer">Lihat sumber &#8599;</a>{% endif %}
+    <span class="species-fact__meta">[{{ fakta.source_type }} &middot; diakses {{ fakta.source_date|date:"d M Y" }}]</span>
+  </p>
+</div>

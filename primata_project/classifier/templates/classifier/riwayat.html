@@ -37,10 +37,13 @@
 <div class="riwayat-list riwayat-gallery">
   {% for item in daftar_riwayat %}
   <a href="{% url 'classifier:hasil' item.pk %}" class="riwayat-item">
-    <img src="{{ item.gambar.url }}" alt="{{ item.nama_tampilan }}">
+    <span class="riwayat-thumb">
+      <img src="{{ item.gambar.url }}" alt="{{ item.nama_tampilan }}" loading="lazy" decoding="async" width="380" height="190">
+    </span>
     <div class="riwayat-info">
       <p class="riwayat-nama">{{ item.nama_tampilan }}</p>
       <p class="riwayat-meta">{{ item.keyakinan }}% keyakinan &middot; {{ item.waktu|date:"d M Y, H:i" }}</p>
+      <span class="riwayat-confidence" aria-hidden="true"><span style="width: {{ item.keyakinan }}%"></span></span>
     </div>
   </a>
   {% endfor %}

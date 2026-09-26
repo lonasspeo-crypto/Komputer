@@ -1,4 +1,5 @@
 {% extends "classifier/base.html" %}
+{% load cache_bust %}
 
 {% block content %}
 <section class="result-hero">
@@ -20,6 +21,7 @@
           <p class="result-species">{% if prediction.is_confident %}{{ prediction.display_name }}{% else %}{{ prediction.display_name }}{% endif %}</p>
           {% if prediction.is_confident %}
           <p class="result-sci">{{ prediction.sci_name }}</p>
+          <p class="result-profile-link"><a href="{{ species_detail_url }}">Lihat profil lengkap spesies ini &rarr;</a></p>
           {% else %}
           <p class="result-uncertain-note">Prediksi tertinggi, tetapi belum melewati ambang validasi sistem.</p>
           {% endif %}
@@ -61,58 +63,23 @@
 
         {% with fakta=prediction.info.fakta %}
         {% if fakta.status_konservasi %}
-        <div class="species-fact">
-          <p><strong>Status konservasi:</strong> {{ fakta.status_konservasi.isi }}</p>
-          <p class="species-fact__source">
-            Sumber: {{ fakta.status_konservasi.source_title }}{% if fakta.status_konservasi.source_author %} — {{ fakta.status_konservasi.source_author }}{% endif %}{% if fakta.status_konservasi.source_year %} ({{ fakta.status_konservasi.source_year }}){% endif %}.
-            <a href="{{ fakta.status_konservasi.source_url }}" target="_blank" rel="noopener noreferrer">Lihat sumber &#8599;</a>
-            <span class="species-fact__meta">[{{ fakta.status_konservasi.source_type }} · diakses {{ fakta.status_konservasi.source_date|date:"d M Y" }}]</span>
-          </p>
-        </div>
+        {% include "classifier/partials/fakta_sumber.html" with fakta=fakta.status_konservasi label="Status konservasi" %}
         {% endif %}
 
         {% if fakta.ciri_fisik %}
-        <div class="species-fact">
-          <p><strong>Ciri fisik / identifikasi:</strong> {{ fakta.ciri_fisik.isi }}</p>
-          <p class="species-fact__source">
-            Sumber: {{ fakta.ciri_fisik.source_title }}{% if fakta.ciri_fisik.source_author %} — {{ fakta.ciri_fisik.source_author }}{% endif %}{% if fakta.ciri_fisik.source_year %} ({{ fakta.ciri_fisik.source_year }}){% endif %}.
-            {% if fakta.ciri_fisik.source_doi %}<a href="https://doi.org/{{ fakta.ciri_fisik.source_doi }}" target="_blank" rel="noopener noreferrer">DOI: {{ fakta.ciri_fisik.source_doi }} &#8599;</a>{% else %}<a href="{{ fakta.ciri_fisik.source_url }}" target="_blank" rel="noopener noreferrer">Lihat sumber &#8599;</a>{% endif %}
-            <span class="species-fact__meta">[{{ fakta.ciri_fisik.source_type }} · diakses {{ fakta.ciri_fisik.source_date|date:"d M Y" }}]</span>
-          </p>
-        </div>
+        {% include "classifier/partials/fakta_sumber.html" with fakta=fakta.ciri_fisik label="Ciri fisik / identifikasi" %}
         {% endif %}
 
         {% if fakta.distribusi %}
-        <div class="species-fact">
-          <p><strong>Distribusi geografis:</strong> {{ fakta.distribusi.isi }}</p>
-          <p class="species-fact__source">
-            Sumber: {{ fakta.distribusi.source_title }}{% if fakta.distribusi.source_year %} ({{ fakta.distribusi.source_year }}){% endif %}.
-            <a href="{{ fakta.distribusi.source_url }}" target="_blank" rel="noopener noreferrer">Lihat sumber &#8599;</a>
-            <span class="species-fact__meta">[{{ fakta.distribusi.source_type }} · diakses {{ fakta.distribusi.source_date|date:"d M Y" }}]</span>
-          </p>
-        </div>
+        {% include "classifier/partials/fakta_sumber.html" with fakta=fakta.distribusi label="Distribusi geografis" %}
         {% endif %}
 
         {% if fakta.habitat %}
-        <div class="species-fact">
-          <p><strong>Habitat:</strong> {{ fakta.habitat.isi }}</p>
-          <p class="species-fact__source">
-            Sumber: {{ fakta.habitat.source_title }}{% if fakta.habitat.source_year %} ({{ fakta.habitat.source_year }}){% endif %}.
-            <a href="{{ fakta.habitat.source_url }}" target="_blank" rel="noopener noreferrer">Lihat sumber &#8599;</a>
-            <span class="species-fact__meta">[{{ fakta.habitat.source_type }} · diakses {{ fakta.habitat.source_date|date:"d M Y" }}]</span>
-          </p>
-        </div>
+        {% include "classifier/partials/fakta_sumber.html" with fakta=fakta.habitat label="Habitat" %}
         {% endif %}
 
         {% if fakta.taksonomi %}
-        <div class="species-fact">
-          <p><strong>Taksonomi:</strong> {{ fakta.taksonomi.isi }}</p>
-          <p class="species-fact__source">
-            Sumber: {{ fakta.taksonomi.source_title }}{% if fakta.taksonomi.source_author %} — {{ fakta.taksonomi.source_author }}{% endif %}{% if fakta.taksonomi.source_year %} ({{ fakta.taksonomi.source_year }}){% endif %}.
-            {% if fakta.taksonomi.source_doi %}<a href="https://doi.org/{{ fakta.taksonomi.source_doi }}" target="_blank" rel="noopener noreferrer">DOI: {{ fakta.taksonomi.source_doi }} &#8599;</a>{% else %}<a href="{{ fakta.taksonomi.source_url }}" target="_blank" rel="noopener noreferrer">Lihat sumber &#8599;</a>{% endif %}
-            <span class="species-fact__meta">[{{ fakta.taksonomi.source_type }} · diakses {{ fakta.taksonomi.source_date|date:"d M Y" }}]</span>
-          </p>
-        </div>
+        {% include "classifier/partials/fakta_sumber.html" with fakta=fakta.taksonomi label="Taksonomi" %}
         {% endif %}
         {% endwith %}
 
@@ -136,7 +103,7 @@
 
             {% for foto in prediction.info.foto_observasi %}
             <figure class="observation-slide{% if forloop.first %} is-active{% endif %}" data-carousel-slide>
-              <img src="{{ foto.gambar.url }}" alt="Foto observasi {{ prediction.display_name }} di {{ foto.lokasi|default:'lokasi tidak diketahui' }}">
+              <img src="{{ foto.gambar.url }}" alt="Foto observasi {{ prediction.display_name }} di {{ foto.lokasi|default:'lokasi tidak diketahui' }}" loading="lazy" decoding="async">
             </figure>
             {% endfor %}
 
